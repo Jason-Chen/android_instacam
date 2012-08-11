@@ -29,7 +29,6 @@ static float inv_corner_radius;
 static float inv_width;
 static float inv_height;
 
-static float2 tex_pos;
 static float sqrt2 = 1.41421356f;
 
 void setBrightness(float value) {
@@ -55,8 +54,6 @@ void setSize(float width, float height) {
 }
 
 void root(uchar4* v_color, uint32_t x, uint32_t y) {
-	tex_pos.x = x * inv_width;
-	tex_pos.y = y * inv_height;
 	
 	float3 color = rsUnpackColor8888(*v_color).rgb;
 	
@@ -66,6 +63,10 @@ void root(uchar4* v_color, uint32_t x, uint32_t y) {
 	color = saturation(color, saturation_value);
 	
 	// Calculate darker rounded corners.
+	float2 tex_pos;
+	tex_pos.x = x * inv_width;
+	tex_pos.y = y * inv_height;
+	
 	float len = distance(tex_pos, 0.5f) * sqrt2;
 	len = (len - 1.0f + corner_radius) * inv_corner_radius;
 	len = clamp(len, 0.0f, 1.0f);
