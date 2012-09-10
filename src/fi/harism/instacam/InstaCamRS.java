@@ -96,6 +96,7 @@ public class InstaCamRS {
 			mFilterPolaroid.forEach_root(allocation);
 			break;
 		case 8:
+			mFilterCartoon.invoke_calculateBorders(allocation);
 			mFilterCartoon.forEach_root(allocation);
 			break;
 		}

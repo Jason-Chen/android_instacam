@@ -23,6 +23,7 @@ uniform float uBrightness;
 uniform float uContrast;
 uniform float uSaturation;
 uniform float uCornerRadius;
+uniform vec2 uPixelSize;
 
 varying vec2 vTextureCoord;
 
@@ -195,9 +196,33 @@ void main() {
 	}
 	// Cartoon filter.
 	if (uFilter == 8) {
-		color = rgbToHsv(color);		
-		color = floor(color * 8.0 + 0.5) * 0.125;
-		color = hsvToRgb(color);
+		vec3 sample[9];
+		vec3 border;		
+		vec2 texCoord;
+		
+		int i = 0;
+		texCoord.x = vTextureCoord.x - uPixelSize.x * 2.0;
+		for (int x = 0; x < 3; ++x) {
+			texCoord.y = vTextureCoord.y + uPixelSize.y * 2.0;
+			for (int y = 0; y < 3; ++y) {
+				sample[i++] = texture2D(sTexture, texCoord).rgb;
+				texCoord.y -= uPixelSize.y * 2.0;
+			}
+			texCoord.x += uPixelSize.x * 2.0;
+		}
+		
+		vec3 horizEdge = sample[2] + sample[5] + sample[8] -
+					(sample[0] + sample[3] + sample[6]);
+
+		vec3 vertEdge = sample[0] + sample[1] + sample[2] -
+						(sample[6] + sample[7] + sample[8]);
+
+		border = sqrt((horizEdge * horizEdge) + 
+						(vertEdge * vertEdge));
+
+		if (border.r > 0.4 || border.g > 0.4 || border.b > 0.4){
+			color *= 1.0 - dot(border, border);
+		}
 	}
 	
 	// Calculate brightness, contrast and saturation.
