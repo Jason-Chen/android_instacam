@@ -202,15 +202,15 @@ void main() {
 		
 		int i = 0;
 		color = vec3(0.0, 0.0, 0.0);
-		texCoord.x = vTextureCoord.x - uPixelSize.x * 2.0;
+		texCoord.x = vTextureCoord.x - uPixelSize.x * 1.5;
 		for (int x = 0; x < 3; ++x) {
-			texCoord.y = vTextureCoord.y + uPixelSize.y * 2.0;
+			texCoord.y = vTextureCoord.y + uPixelSize.y * 1.5;
 			for (int y = 0; y < 3; ++y) {
 				sample[i] = texture2D(sTexture, texCoord).rgb;
 				color += sample[i++];
-				texCoord.y -= uPixelSize.y * 2.0;
+				texCoord.y -= uPixelSize.y * 1.5;
 			}
-			texCoord.x += uPixelSize.x * 2.0;
+			texCoord.x += uPixelSize.x * 1.5;
 		}
 		color /= 9.0;
 		
@@ -223,7 +223,7 @@ void main() {
 		border = sqrt((horizEdge * horizEdge) + 
 						(vertEdge * vertEdge));
 
-		if (border.r > 0.4 || border.g > 0.4 || border.b > 0.4){
+		if (border.r > 0.3 || border.g > 0.3 || border.b > 0.3){
 			color *= 1.0 - dot(border, border);
 		}
 		
@@ -231,7 +231,7 @@ void main() {
 		const vec3 colorGreen = vec3(0.3, 1.0, 0.3);
 		const vec3 colorBlue = vec3(0.3, 0.3, 1.0);
 		
-		color = floor(color * 4.0) * 0.25;
+		color = floor(color * 8.0) * 0.125;
 		color = colorRed * color.r + colorBlue * color.b + colorGreen * color.g;
 	}
 	

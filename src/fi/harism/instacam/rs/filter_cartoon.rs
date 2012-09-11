@@ -23,7 +23,7 @@ void apply(const rs_allocation src, rs_allocation dst) {
 	int width = rsAllocationGetDimX(src);
 	int height = rsAllocationGetDimY(src);	
 	
-	const int borderWidth = 8;
+	const int borderWidth = 6;
 	for (int x = borderWidth; x < width - borderWidth; ++x) {
 		for (int y = borderWidth; y < height - borderWidth; ++y) {
 			
@@ -53,7 +53,7 @@ void apply(const rs_allocation src, rs_allocation dst) {
 								(vertEdge * vertEdge));
 
 			float alpha = 1.0;
-			if (border.r > 0.4 || border.g > 0.4 || border.b > 0.4){
+			if (border.r > 0.3 || border.g > 0.3 || border.b > 0.3){
 				color *= 1.0f - dot(border, border);
 			}
 			
@@ -61,7 +61,7 @@ void apply(const rs_allocation src, rs_allocation dst) {
 			const float3 colorGreen = { 0.3, 1.0, 0.3 };
 			const float3 colorBlue =  { 0.3, 0.3, 1.0 };
 		
-			color = floor(color * 4.0f) * 0.25f;
+			color = floor(color * 8.0f) * 0.125f;
 			color = colorRed * color.r + colorBlue * color.b + colorGreen * color.g;
 			
 			uchar4* colorValue = (uchar4*)rsGetElementAt(dst, x, y);
