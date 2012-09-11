@@ -96,8 +96,11 @@ public class InstaCamRS {
 			mFilterPolaroid.forEach_root(allocation);
 			break;
 		case 8:
-			mFilterCartoon.invoke_calculateBorders(allocation);
-			mFilterCartoon.forEach_root(allocation);
+			Allocation allocationSrc = Allocation.createFromBitmap(mRS, bitmap,
+					Allocation.MipmapControl.MIPMAP_NONE,
+					Allocation.USAGE_SCRIPT);
+			mFilterCartoon.invoke_apply(allocationSrc, allocation);
+			allocationSrc.destroy();
 			break;
 		}
 

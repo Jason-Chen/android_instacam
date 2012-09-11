@@ -19,26 +19,29 @@
 
 #include "utils.rsh"
 
-void calculateBorders(rs_allocation allocation) {
-	int width = rsAllocationGetDimX(allocation);
-	int height = rsAllocationGetDimY(allocation);	
+void apply(const rs_allocation src, rs_allocation dst) {
+	int width = rsAllocationGetDimX(src);
+	int height = rsAllocationGetDimY(src);	
 	
 	const int borderWidth = 8;
 	for (int x = borderWidth; x < width - borderWidth; ++x) {
 		for (int y = borderWidth; y < height - borderWidth; ++y) {
 			
+			float3 color = { 0, 0, 0 };
 			float3 sample[9];
 			int i = 0;
 			int tx = -borderWidth;
 			for (int xx = 0; xx < 3; ++xx) {
 				int ty = -borderWidth;
 				for (int yy = 0; yy < 3; ++yy) {
-					const uchar4* colorValue = rsGetElementAt(allocation, x + tx, y + ty);
+					const uchar4* colorValue = rsGetElementAt(src, x + tx, y + ty);
 					sample[i++] = rsUnpackColor8888(*colorValue).rgb;
+					color += rsUnpackColor8888(*colorValue).rgb;
 					ty += borderWidth;
 				}
 				tx += borderWidth;
 			}
+			color /= 9.0f;
 			
 			float3 horizEdge = sample[2] + sample[5] + sample[8] -
 							(sample[0] + sample[3] + sample[6]);
@@ -51,24 +54,19 @@ void calculateBorders(rs_allocation allocation) {
 
 			float alpha = 1.0;
 			if (border.r > 0.4 || border.g > 0.4 || border.b > 0.4){
-				alpha = 1.0 - dot(border, border);
-				alpha = alpha < 0.0 ? 0.0 : alpha;
+				color *= 1.0f - dot(border, border);
 			}
 			
-			uchar4* colorValue = (uchar4*)rsGetElementAt(allocation, x, y);
-			float3 color = rsUnpackColor8888(*colorValue).rgb;			
-			*colorValue = rsPackColorTo8888(color.r, color.g, color.b, alpha);
+			const float3 colorRed = { 1.0, 0.3, 0.3 };
+			const float3 colorGreen = { 0.3, 1.0, 0.3 };
+			const float3 colorBlue =  { 0.3, 0.3, 1.0 };
+		
+			color = floor(color * 4.0f) * 0.25f;
+			color = colorRed * color.r + colorBlue * color.b + colorGreen * color.g;
+			
+			uchar4* colorValue = (uchar4*)rsGetElementAt(dst, x, y);
+			color = clamp(color, 0.0f, 1.0f);
+			*colorValue = rsPackColorTo8888(color.r, color.g, color.b, 1.0f);
 		}
 	}
-}
-
-void root(uchar4* v_color) {
-	float4 color = rsUnpackColor8888(*v_color);
-	
-	color.rgb *= color.a;
-	color.a = 1.0;
-
-	// Finally store color value back to allocation.
-	color = clamp(color, 0.0f, 1.0f);
-	*v_color = rsPackColorTo8888(color);
 }
