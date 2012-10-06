@@ -49,8 +49,16 @@ public class InstaCamRenderer extends GLSurfaceView implements
 	private Observer mObserver;
 	// Shader for copying preview texture into offscreen one.
 	private final InstaCamShader mShaderCopyOes = new InstaCamShader();
-	// Filter shader for rendering offscreen texture onto screen.
-	private final InstaCamShader mShaderFilter = new InstaCamShader();
+	// Filter shaders for rendering offscreen texture onto screen.
+	private final InstaCamShader mShaderFilterAnsel = new InstaCamShader();
+	private final InstaCamShader mShaderFilterBlackAndWhite = new InstaCamShader();
+	private final InstaCamShader mShaderFilterCartoon = new InstaCamShader();
+	private final InstaCamShader mShaderFilterDefault = new InstaCamShader();
+	private final InstaCamShader mShaderFilterGeorgia = new InstaCamShader();
+	private final InstaCamShader mShaderFilterPolaroid = new InstaCamShader();
+	private final InstaCamShader mShaderFilterRetro = new InstaCamShader();
+	private final InstaCamShader mShaderFilterSahara = new InstaCamShader();
+	private final InstaCamShader mShaderFilterSepia = new InstaCamShader();
 	// Shared data instance.
 	private InstaCamData mSharedData;
 	// One and only SurfaceTexture instance.
@@ -150,28 +158,56 @@ public class InstaCamRenderer extends GLSurfaceView implements
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
 		GLES20.glViewport(0, 0, mWidth, mHeight);
 
+		InstaCamShader shader = mShaderFilterDefault;
+
+		switch (mSharedData.mFilter) {
+		case 1:
+			shader = mShaderFilterBlackAndWhite;
+			break;
+		case 2:
+			shader = mShaderFilterAnsel;
+			break;
+		case 3:
+			shader = mShaderFilterSepia;
+			break;
+		case 4:
+			shader = mShaderFilterRetro;
+			break;
+		case 5:
+			shader = mShaderFilterGeorgia;
+			break;
+		case 6:
+			shader = mShaderFilterSahara;
+			break;
+		case 7:
+			shader = mShaderFilterPolaroid;
+			break;
+		case 8: {
+			shader = mShaderFilterCartoon;
+			shader.useProgram();
+			int uPixelSize = shader.getHandle("uPixelSize");
+			GLES20.glUniform2f(uPixelSize, 1.0f / mWidth, 1.0f / mHeight);
+			break;
+		}
+		}
+
 		// Take filter shader into use.
-		mShaderFilter.useProgram();
+		shader.useProgram();
 
 		// Uniform variables.
-		int uFilter = mShaderFilter.getHandle("uFilter");
-		int uBrightness = mShaderFilter.getHandle("uBrightness");
-		int uContrast = mShaderFilter.getHandle("uContrast");
-		int uSaturation = mShaderFilter.getHandle("uSaturation");
-		int uCornerRadius = mShaderFilter.getHandle("uCornerRadius");
-		int uPixelSize = mShaderFilter.getHandle("uPixelSize");
+		int uBrightness = shader.getHandle("uBrightness");
+		int uContrast = shader.getHandle("uContrast");
+		int uSaturation = shader.getHandle("uSaturation");
+		int uCornerRadius = shader.getHandle("uCornerRadius");
 
-		int uAspectRatio = mShaderFilter.getHandle("uAspectRatio");
-		int uAspectRatioPreview = mShaderFilter
-				.getHandle("uAspectRatioPreview");
+		int uAspectRatio = shader.getHandle("uAspectRatio");
+		int uAspectRatioPreview = shader.getHandle("uAspectRatioPreview");
 
 		// Store uniform variables into use.
-		GLES20.glUniform1i(uFilter, mSharedData.mFilter);
 		GLES20.glUniform1f(uBrightness, mSharedData.mBrightness);
 		GLES20.glUniform1f(uContrast, mSharedData.mContrast);
 		GLES20.glUniform1f(uSaturation, mSharedData.mSaturation);
 		GLES20.glUniform1f(uCornerRadius, mSharedData.mCornerRadius);
-		GLES20.glUniform2f(uPixelSize, 1.0f / mWidth, 1.0f / mHeight);
 
 		GLES20.glUniform2fv(uAspectRatio, 1, mAspectRatio, 0);
 		GLES20.glUniform2fv(uAspectRatioPreview, 1,
@@ -241,21 +277,40 @@ public class InstaCamRenderer extends GLSurfaceView implements
 	@Override
 	public synchronized void onSurfaceCreated(GL10 unused, EGLConfig config) {
 
+		//
 		// Try to load shaders.
-		try {
-			String vertexSource, fragmentSource;
-			vertexSource = loadRawString(R.raw.copy_oes_vs);
-			fragmentSource = loadRawString(R.raw.copy_oes_fs);
-			mShaderCopyOes.deleteProgram();
-			mShaderCopyOes.setProgram(vertexSource, fragmentSource);
-			vertexSource = loadRawString(R.raw.filter_vs);
-			fragmentSource = loadRawString(R.raw.filter_fs);
-			mShaderFilter.setProgram(vertexSource, fragmentSource);
+		//
 
+		try {
+			String vertexSource = loadRawString(R.raw.copy_oes_vs);
+			String fragmentSource = loadRawString(R.raw.copy_oes_fs);
+			mShaderCopyOes.setProgram(vertexSource, fragmentSource);
 		} catch (Exception ex) {
-			mShaderCopyOes.deleteProgram();
-			mShaderFilter.deleteProgram();
 			showError(ex.getMessage());
+		}
+
+		final int[] FILTER_IDS = { R.raw.filter_ansel_fs,
+				R.raw.filter_blackandwhite_fs, R.raw.filter_cartoon_fs,
+				R.raw.filter_default_fs, R.raw.filter_georgia_fs,
+				R.raw.filter_polaroid_fs, R.raw.filter_retro_fs,
+				R.raw.filter_sahara_fs, R.raw.filter_sepia_fs };
+		final InstaCamShader[] SHADERS = { mShaderFilterAnsel,
+				mShaderFilterBlackAndWhite, mShaderFilterCartoon,
+				mShaderFilterDefault, mShaderFilterGeorgia,
+				mShaderFilterPolaroid, mShaderFilterRetro, mShaderFilterSahara,
+				mShaderFilterSepia };
+
+		for (int i = 0; i < FILTER_IDS.length; ++i) {
+			try {
+				String vertexSource = loadRawString(R.raw.filter_vs);
+				String fragmentSource = loadRawString(R.raw.filter_fs);
+				fragmentSource = fragmentSource
+						.replace("____FUNCTION_FILTER____",
+								loadRawString(FILTER_IDS[i]));
+				SHADERS[i].setProgram(vertexSource, fragmentSource);
+			} catch (Exception ex) {
+				showError(ex.getMessage());
+			}
 		}
 
 		requestRender();

@@ -1,0 +1,4 @@
+
+vec3 filter(vec3 color, sampler2D texture, vec2 texturePos) {
+	return color;
+}
