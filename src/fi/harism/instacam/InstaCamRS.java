@@ -31,6 +31,7 @@ public class InstaCamRS {
 	private ScriptC_filter_blackandwhite mFilterBlackAndWhite;
 	private ScriptC_filter_cartoon mFilterCartoon;
 	private ScriptC_filter_default mFilterDefault;
+	private ScriptC_filter_edges mFilterEdges;
 	private ScriptC_filter_georgia mFilterGeorgia;
 	private ScriptC_filter_polaroid mFilterPolaroid;
 	private ScriptC_filter_retro mFilterRetro;
@@ -50,6 +51,10 @@ public class InstaCamRS {
 				context.getResources(), R.raw.filter_blackandwhite);
 		mFilterCartoon = new ScriptC_filter_cartoon(mRS,
 				context.getResources(), R.raw.filter_cartoon);
+		mFilterDefault = new ScriptC_filter_default(mRS,
+				context.getResources(), R.raw.filter_default);
+		mFilterEdges = new ScriptC_filter_edges(mRS, context.getResources(),
+				R.raw.filter_edges);
 		mFilterGeorgia = new ScriptC_filter_georgia(mRS,
 				context.getResources(), R.raw.filter_georgia);
 		mFilterPolaroid = new ScriptC_filter_polaroid(mRS,
@@ -60,8 +65,6 @@ public class InstaCamRS {
 				R.raw.filter_sahara);
 		mFilterSepia = new ScriptC_filter_sepia(mRS, context.getResources(),
 				R.raw.filter_sepia);
-		mFilterDefault = new ScriptC_filter_default(mRS,
-				context.getResources(), R.raw.filter_default);
 	}
 
 	/**
@@ -95,13 +98,22 @@ public class InstaCamRS {
 		case 7:
 			mFilterPolaroid.forEach_root(allocation);
 			break;
-		case 8:
+		case 8: {
 			Allocation allocationSrc = Allocation.createFromBitmap(mRS, bitmap,
 					Allocation.MipmapControl.MIPMAP_NONE,
 					Allocation.USAGE_SCRIPT);
 			mFilterCartoon.invoke_apply(allocationSrc, allocation);
 			allocationSrc.destroy();
 			break;
+		}
+		case 9: {
+			Allocation allocationSrc = Allocation.createFromBitmap(mRS, bitmap,
+					Allocation.MipmapControl.MIPMAP_NONE,
+					Allocation.USAGE_SCRIPT);
+			mFilterEdges.invoke_apply(allocationSrc, allocation);
+			allocationSrc.destroy();
+			break;
+		}
 		}
 
 		// Apply brightness, contrast and saturation.

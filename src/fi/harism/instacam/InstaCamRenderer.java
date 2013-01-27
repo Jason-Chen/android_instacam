@@ -54,6 +54,7 @@ public class InstaCamRenderer extends GLSurfaceView implements
 	private final InstaCamShader mShaderFilterBlackAndWhite = new InstaCamShader();
 	private final InstaCamShader mShaderFilterCartoon = new InstaCamShader();
 	private final InstaCamShader mShaderFilterDefault = new InstaCamShader();
+	private final InstaCamShader mShaderFilterEdges = new InstaCamShader();
 	private final InstaCamShader mShaderFilterGeorgia = new InstaCamShader();
 	private final InstaCamShader mShaderFilterPolaroid = new InstaCamShader();
 	private final InstaCamShader mShaderFilterRetro = new InstaCamShader();
@@ -189,6 +190,13 @@ public class InstaCamRenderer extends GLSurfaceView implements
 			GLES20.glUniform2f(uPixelSize, 1.0f / mWidth, 1.0f / mHeight);
 			break;
 		}
+		case 9: {
+			shader = mShaderFilterEdges;
+			shader.useProgram();
+			int uPixelSize = shader.getHandle("uPixelSize");
+			GLES20.glUniform2f(uPixelSize, 1.0f / mWidth, 1.0f / mHeight);
+			break;
+		}
 		}
 
 		// Take filter shader into use.
@@ -291,12 +299,13 @@ public class InstaCamRenderer extends GLSurfaceView implements
 
 		final int[] FILTER_IDS = { R.raw.filter_ansel_fs,
 				R.raw.filter_blackandwhite_fs, R.raw.filter_cartoon_fs,
-				R.raw.filter_default_fs, R.raw.filter_georgia_fs,
-				R.raw.filter_polaroid_fs, R.raw.filter_retro_fs,
-				R.raw.filter_sahara_fs, R.raw.filter_sepia_fs };
+				R.raw.filter_default_fs, R.raw.filter_edges_fs,
+				R.raw.filter_georgia_fs, R.raw.filter_polaroid_fs,
+				R.raw.filter_retro_fs, R.raw.filter_sahara_fs,
+				R.raw.filter_sepia_fs };
 		final InstaCamShader[] SHADERS = { mShaderFilterAnsel,
 				mShaderFilterBlackAndWhite, mShaderFilterCartoon,
-				mShaderFilterDefault, mShaderFilterGeorgia,
+				mShaderFilterDefault, mShaderFilterEdges, mShaderFilterGeorgia,
 				mShaderFilterPolaroid, mShaderFilterRetro, mShaderFilterSahara,
 				mShaderFilterSepia };
 
