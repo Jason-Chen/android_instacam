@@ -96,6 +96,7 @@ public class InstaCamRenderer extends GLSurfaceView implements
 		mFullQuadVertices = ByteBuffer.allocateDirect(4 * 2);
 		mFullQuadVertices.put(FULL_QUAD_COORDS).position(0);
 
+		setPreserveEGLContextOnPause(true);
 		setEGLContextClientVersion(2);
 		setRenderer(this);
 		setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
@@ -237,21 +238,6 @@ public class InstaCamRenderer extends GLSurfaceView implements
 	}
 
 	@Override
-	public synchronized void onPause() {
-		super.onPause();
-		if (mSurfaceTexture != null) {
-			mSurfaceTexture.release();
-			mSurfaceTexture = null;
-		}
-	}
-
-	@Override
-	public synchronized void onResume() {
-		super.onResume();
-		requestRender();
-	}
-
-	@Override
 	public synchronized void onSurfaceChanged(GL10 unused, int width, int height) {
 
 		// Store width and height.
@@ -263,10 +249,12 @@ public class InstaCamRenderer extends GLSurfaceView implements
 		mAspectRatio[1] = (float) Math.min(mWidth, mHeight) / mHeight;
 
 		// Initialize textures.
-		mFboExternal.reset();
-		mFboExternal.init(mWidth, mHeight, 1, true);
-		mFboOffscreen.reset();
-		mFboOffscreen.init(mWidth, mHeight, 1, false);
+		if (mFboExternal.getWidth() != mWidth || mFboExternal.getHeight() != mHeight) {
+			mFboExternal.init(mWidth, mHeight, 1, true);
+		}
+		if (mFboOffscreen.getWidth() != mWidth || mFboOffscreen.getHeight() != mHeight) {
+			mFboOffscreen.init(mWidth, mHeight, 1, false);
+		}
 
 		// Allocate new SurfaceTexture.
 		SurfaceTexture oldSurfaceTexture = mSurfaceTexture;
@@ -321,8 +309,9 @@ public class InstaCamRenderer extends GLSurfaceView implements
 				showError(ex.getMessage());
 			}
 		}
-
-		requestRender();
+		
+		mFboExternal.reset();
+		mFboOffscreen.reset();
 	}
 
 	/**

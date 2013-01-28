@@ -399,7 +399,12 @@ public class InstaCamActivity extends Activity {
 			try {
 				mCamera.stopPreview();
 				mCamera.setPreviewTexture(surfaceTexture);
-				mCamera.startPreview();
+
+				// Start preview only if shoot -button is visible. Otherwise we
+				// do have image captured for later use.
+				if (findViewById(R.id.buttons_shoot).getVisibility() == View.VISIBLE)
+					mCamera.startPreview();
+				
 			} catch (final Exception ex) {
 				runOnUiThread(new Runnable() {
 					@Override

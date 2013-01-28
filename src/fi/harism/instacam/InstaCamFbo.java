@@ -146,6 +146,7 @@ public final class InstaCamFbo {
 		GLES20.glDeleteTextures(mTextureHandles.length, mTextureHandles, 0);
 		mFrameBufferHandle = -1;
 		mTextureHandles = new int[0];
+		mWidth = mHeight = 0;
 	}
 
 }
