@@ -249,10 +249,12 @@ public class InstaCamRenderer extends GLSurfaceView implements
 		mAspectRatio[1] = (float) Math.min(mWidth, mHeight) / mHeight;
 
 		// Initialize textures.
-		if (mFboExternal.getWidth() != mWidth || mFboExternal.getHeight() != mHeight) {
+		if (mFboExternal.getWidth() != mWidth
+				|| mFboExternal.getHeight() != mHeight) {
 			mFboExternal.init(mWidth, mHeight, 1, true);
 		}
-		if (mFboOffscreen.getWidth() != mWidth || mFboOffscreen.getHeight() != mHeight) {
+		if (mFboOffscreen.getWidth() != mWidth
+				|| mFboOffscreen.getHeight() != mHeight) {
 			mFboOffscreen.init(mWidth, mHeight, 1, false);
 		}
 
@@ -309,7 +311,7 @@ public class InstaCamRenderer extends GLSurfaceView implements
 				showError(ex.getMessage());
 			}
 		}
-		
+
 		mFboExternal.reset();
 		mFboOffscreen.reset();
 	}

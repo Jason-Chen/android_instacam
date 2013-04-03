@@ -2,20 +2,23 @@
 uniform vec2 uPixelSize;
 
 vec3 filter(vec3 color, sampler2D texture, vec2 texturePos) {
-	float pix[9];
-	vec3 sample;
-	
-	for (int i = 0; i < 3; ++i)
-	for (int j = 0; j < 3; ++j) {
-		sample = texture2D(texture, texturePos + vec2(i - 1, j - 1) * uPixelSize).rgb;
-		pix[i * 3 + j] = length(sample);
-	}
+	float dx = uPixelSize.x;
+	float dy = uPixelSize.y;
+	float len0 = length(texture2D(texture, vec2(texturePos.x - dx, texturePos.y - dy)).rgb);
+	float len1 = length(texture2D(texture, vec2(texturePos.x - dx, texturePos.y)).rgb);
+	float len2 = length(texture2D(texture, vec2(texturePos.x - dx, texturePos.y + dy)).rgb);
+	float len3 = length(texture2D(texture, vec2(texturePos.x, texturePos.y - dy)).rgb);
+	float len4 = length(texture2D(texture, vec2(texturePos.x, texturePos.y)).rgb);
+	float len5 = length(texture2D(texture, vec2(texturePos.x, texturePos.y + dy)).rgb);
+	float len6 = length(texture2D(texture, vec2(texturePos.x + dx, texturePos.y - dy)).rgb);
+	float len7 = length(texture2D(texture, vec2(texturePos.x + dx, texturePos.y)).rgb);
+	float len8 = length(texture2D(texture, vec2(texturePos.x + dx, texturePos.y + dy)).rgb);
 	
 	float delta = (
-		abs(pix[1]-pix[7]) +
-		abs(pix[5]-pix[3]) +
-		abs(pix[0]-pix[8]) +
-		abs(pix[2]-pix[6]) ) * 0.25;
+		abs(len1 - len7) +
+		abs(len5 - len3) +
+		abs(len0 - len8) +
+		abs(len2 - len6) ) * 0.25;
 	
 	return vec3(0.8 * delta, 1.2 * delta, 2.0 * delta);
 }

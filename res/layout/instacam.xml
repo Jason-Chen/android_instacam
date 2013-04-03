@@ -141,7 +141,8 @@
         android:layout_below="@id/header"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="10dp" >
+        android:padding="10dp"
+        android:scaleY="0.0" >
 
         <LinearLayout
             android:layout_width="wrap_content"

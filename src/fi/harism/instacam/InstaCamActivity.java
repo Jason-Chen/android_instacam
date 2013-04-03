@@ -19,7 +19,11 @@ package fi.harism.instacam;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Calendar;
+import java.util.Locale;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
@@ -42,11 +46,8 @@ import android.view.OrientationEventListener;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.view.animation.AnimationSet;
 import android.view.animation.RotateAnimation;
-import android.view.animation.ScaleAnimation;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.SeekBar;
@@ -110,12 +111,13 @@ public class InstaCamActivity extends Activity {
 		// Set content view.
 		setContentView(R.layout.instacam);
 
-		Spinner localSpinner = (Spinner) findViewById(R.id.spinner_filter);
+		// Set filter spinner adapter.
+		Spinner filterSpinner = (Spinner) findViewById(R.id.spinner_filter);
 		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
 				this, R.array.filters, R.layout.spinner_text);
 		// adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		adapter.setDropDownViewResource(R.layout.spinner_dropdown);
-		localSpinner.setAdapter(adapter);
+		filterSpinner.setAdapter(adapter);
 
 		// Find renderer view and instantiate it.
 		mRenderer = (InstaCamRenderer) findViewById(R.id.instacam_renderer);
@@ -138,11 +140,10 @@ public class InstaCamActivity extends Activity {
 		mPreferences = getPreferences(MODE_PRIVATE);
 
 		// Set observer for filter Spinner.
-		Spinner spinner = (Spinner) findViewById(R.id.spinner_filter);
-		spinner.setOnItemSelectedListener(mObserverSpinner);
+		filterSpinner.setOnItemSelectedListener(mObserverSpinner);
 		mSharedData.mFilter = mPreferences.getInt(
 				getString(R.string.key_filter), 0);
-		spinner.setSelection(mSharedData.mFilter);
+		filterSpinner.setSelection(mSharedData.mFilter);
 
 		// SeekBar ids as triples { SeekBar id, key id, default value }.
 		final int SEEKBAR_IDS[][] = {
@@ -191,27 +192,30 @@ public class InstaCamActivity extends Activity {
 	private final void setCameraFront(final boolean front) {
 		View button = findViewById(R.id.button_rotate);
 
-		RotateAnimation animButton = new RotateAnimation(0, 360,
-				Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF,
-				0.5f);
-		animButton.setDuration(700);
-		animButton.setAnimationListener(new Animation.AnimationListener() {
+		PropertyValuesHolder holderRotation = PropertyValuesHolder.ofFloat(
+				"rotation", button.getRotation(), 360);
+		ObjectAnimator anim = ObjectAnimator.ofPropertyValuesHolder(button,
+				holderRotation).setDuration(700);
+		anim.addListener(new Animator.AnimatorListener() {
 			@Override
-			public void onAnimationEnd(Animation animation) {
+			public void onAnimationCancel(Animator animation) {
+			}
+
+			@Override
+			public void onAnimationEnd(Animator animation) {
+				findViewById(R.id.button_rotate).setRotation(0);
 				mCamera.setCameraFront(front);
 			}
 
 			@Override
-			public void onAnimationRepeat(Animation animation) {
+			public void onAnimationRepeat(Animator animation) {
 			}
 
 			@Override
-			public void onAnimationStart(Animation animation) {
+			public void onAnimationStart(Animator animation) {
 			}
 		});
-
-		button.setAnimation(animButton);
-		animButton.startNow();
+		anim.start();
 	}
 
 	private final void setMenuVisible(boolean visible) {
@@ -219,52 +223,58 @@ public class InstaCamActivity extends Activity {
 		View button = findViewById(R.id.button_menu);
 
 		if (visible) {
-			AnimationSet animMenu = new AnimationSet(true);
-			animMenu.addAnimation(new ScaleAnimation(1f, 1f, 0f, 1f));
-			animMenu.addAnimation(new AlphaAnimation(0f, 1f));
-			menu.setAnimation(animMenu);
+			// Animate menu visible
+			menu.setPivotY(0);
 			menu.setVisibility(View.VISIBLE);
-			animMenu.setDuration(500);
-			animMenu.startNow();
+			PropertyValuesHolder holderAlpha = PropertyValuesHolder.ofFloat(
+					"alpha", menu.getAlpha(), 1);
+			PropertyValuesHolder holderScale = PropertyValuesHolder.ofFloat(
+					"scaleY", menu.getScaleY(), 1);
+			ObjectAnimator anim = ObjectAnimator.ofPropertyValuesHolder(menu,
+					holderAlpha, holderScale).setDuration(500);
+			anim.start();
 
-			ScaleAnimation animButton = new ScaleAnimation(1f, 1f, 1f, -1f,
-					Animation.RELATIVE_TO_SELF, 0.0f,
-					Animation.RELATIVE_TO_SELF, 0.5f);
-			button.setAnimation(animButton);
-			animButton.setDuration(500);
-			animButton.setFillAfter(true);
-			animButton.startNow();
+			// Animate menu button "upside down"
+			holderScale = PropertyValuesHolder.ofFloat("scaleY",
+					button.getScaleY(), -1);
+			anim = ObjectAnimator.ofPropertyValuesHolder(button, holderScale)
+					.setDuration(500);
+			anim.start();
 		} else {
-			AnimationSet animMenu = new AnimationSet(true);
-			animMenu.addAnimation(new ScaleAnimation(1f, 1f, 1f, 0f));
-			animMenu.addAnimation(new AlphaAnimation(1f, 0f));
-
-			menu.setAnimation(animMenu);
-			animMenu.setDuration(500);
-			animMenu.setAnimationListener(new Animation.AnimationListener() {
+			// Hide menu
+			menu.setPivotY(0);
+			PropertyValuesHolder holderAlpha = PropertyValuesHolder.ofFloat(
+					"alpha", menu.getAlpha(), 0);
+			PropertyValuesHolder holderScale = PropertyValuesHolder.ofFloat(
+					"scaleY", menu.getScaleY(), 0);
+			ObjectAnimator anim = ObjectAnimator.ofPropertyValuesHolder(menu,
+					holderAlpha, holderScale).setDuration(500);
+			anim.addListener(new Animator.AnimatorListener() {
 				@Override
-				public void onAnimationEnd(Animation anim) {
+				public void onAnimationCancel(Animator animation) {
+				}
+
+				@Override
+				public void onAnimationEnd(Animator animation) {
 					findViewById(R.id.menu).setVisibility(View.GONE);
 				}
 
 				@Override
-				public void onAnimationRepeat(Animation anim) {
+				public void onAnimationRepeat(Animator animation) {
 				}
 
 				@Override
-				public void onAnimationStart(Animation anim) {
+				public void onAnimationStart(Animator animation) {
 				}
 			});
-			animMenu.startNow();
-			menu.invalidate();
+			anim.start();
 
-			ScaleAnimation animButton = new ScaleAnimation(1f, 1f, -1f, 1f,
-					Animation.RELATIVE_TO_SELF, 0.0f,
-					Animation.RELATIVE_TO_SELF, 0.5f);
-			button.setAnimation(animButton);
-			animButton.setDuration(500);
-			animButton.setFillAfter(true);
-			animButton.startNow();
+			// Animate menu button back to "normal"
+			holderScale = PropertyValuesHolder.ofFloat("scaleY",
+					button.getScaleY(), 1);
+			anim = ObjectAnimator.ofPropertyValuesHolder(button, holderScale)
+					.setDuration(500);
+			anim.start();
 		}
 	}
 
@@ -404,7 +414,7 @@ public class InstaCamActivity extends Activity {
 				// do have image captured for later use.
 				if (findViewById(R.id.buttons_shoot).getVisibility() == View.VISIBLE)
 					mCamera.startPreview();
-				
+
 			} catch (final Exception ex) {
 				runOnUiThread(new Runnable() {
 					@Override
@@ -431,7 +441,7 @@ public class InstaCamActivity extends Activity {
 				calendar.setTimeInMillis(mSharedData.mImageTime);
 
 				// Generate picture name.
-				String pictureName = String.format(
+				String pictureName = String.format(Locale.getDefault(),
 						"InstaCam_%d%02d%02d_%02d%02d%02d",
 						calendar.get(Calendar.YEAR),
 						calendar.get(Calendar.MONTH) + (1 - Calendar.JANUARY),
@@ -503,8 +513,9 @@ public class InstaCamActivity extends Activity {
 				v.put(MediaColumns.DATA, filePath.getAbsolutePath());
 
 				File parent = filePath.getParentFile();
-				String path = parent.toString().toLowerCase();
-				String name = parent.getName().toLowerCase();
+				String path = parent.toString()
+						.toLowerCase(Locale.getDefault());
+				String name = parent.getName().toLowerCase(Locale.getDefault());
 				v.put(Images.ImageColumns.BUCKET_ID, path.hashCode());
 				v.put(Images.ImageColumns.BUCKET_DISPLAY_NAME, name);
 				v.put(MediaColumns.SIZE, filePath.length());
