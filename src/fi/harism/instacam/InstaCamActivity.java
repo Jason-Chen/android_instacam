@@ -46,8 +46,6 @@ import android.view.OrientationEventListener;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.Animation;
-import android.view.animation.RotateAnimation;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.SeekBar;
@@ -382,14 +380,11 @@ public class InstaCamActivity extends Activity {
 
 				// Trigger rotation animation.
 				View shoot = findViewById(R.id.button_shoot);
-				RotateAnimation anim = new RotateAnimation(-original,
-						-orientation, Animation.RELATIVE_TO_SELF, 0.5f,
-						Animation.RELATIVE_TO_SELF, 0.5f);
-				anim.setDuration(500);
-				anim.setFillAfter(true);
-				shoot.setAnimation(anim);
-				anim.startNow();
-				shoot.invalidate();
+				PropertyValuesHolder holderRotation = PropertyValuesHolder
+						.ofFloat("rotation", -original, -orientation);
+				ObjectAnimator anim = ObjectAnimator.ofPropertyValuesHolder(
+						shoot, holderRotation).setDuration(500);
+				anim.start();
 
 				// Store and calculate new orientation values.
 				mSharedData.mOrientationDevice = orientation;
