@@ -14,7 +14,7 @@
    limitations under the License.
  */
 
-#include <rs_matrix.rsh>
+#include "rs_matrix.rsh"
 
 static float3 brightness(float3 color, float brightness) {
 	float scaled = brightness / 2.0;

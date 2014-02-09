@@ -17,7 +17,7 @@
 #pragma version(1)
 #pragma rs java_package_name(fi.harism.instacam)
 
-#include <rs_matrix.rsh>
+#include "rs_matrix.rsh"
 
 static rs_matrix4x4 mat = { 1.438, -0.062, -0.062, 0.0,
 		                    -0.122, 1.378, -0.122, 0.0,
